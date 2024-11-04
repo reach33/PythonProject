@@ -91,42 +91,98 @@ print(pretty_print_board(board))
 
 """
 
+"""
 #Aufgabe 5
 
 board = np.full(BOARD_SHAPE,NO_PLAYER, BoardPiece) # kriegen wir als parameter eigentlich
 player = PLAYER1 # Player der reinwirft
 
-
+# kriegen wir eigentlich mit fertigem board
 board[0,5] = PLAYER1
-board[3,4] = PLAYER1
+board[0,4] = PLAYER2
 board[1,2] = PLAYER1
-board[0,1] = PLAYER1
 board[0,2] = PLAYER1
 board[0,3] = PLAYER1
-board[1,1] = PLAYER1
-board[3,3] = PLAYER2
+board[0,1] = PLAYER1
+board[1,3] = PLAYER2
 board[2,3] = PLAYER1
-board[2,4] = PLAYER2
-board[5,4] = PLAYER1
-board[5,5] = PLAYER1
-board[0,0] = PLAYER1
+board[1,4] = PLAYER1
+board[1,1] = PLAYER1
+board[2,2] = PLAYER2
+board[0,6] = PLAYER1
+board[3,2] = PLAYER1
 
+print(pretty_print_board(board))            #printer
 
-print(board)
-print(pretty_print_board(board))
+# Every top Stone from player
+columns_top_positions_player = []
 
-
-rows, columns = np.where(board == player)
+# Get the top stones form player in every column
 for i in range(BOARD_COLS):
-    pass
+    for j in range(BOARD_ROWS):
+        if board[BOARD_ROWS-1-j, i] == NO_PLAYER:
+            continue
+        if board[BOARD_ROWS-1-j, i] == player:
+            columns_top_positions_player.append((BOARD_ROWS-1-j, i))
+            break
+        break                             
+
+win = False# helper delet later (to change with game state or something like that)
+
+# Checks row and columns from the collected top stones if 4 stones from player are connected
+# Could be in the loop above (if == player) but is in an extra function for better reading/understanding
+for (row, column) in columns_top_positions_player:
+    connected_stones_row = 0
+    connected_stones_column = 0
+    for i in range(BOARD_COLS): # row check
+        if board[row,i] == player:
+            connected_stones_row += 1
+            continue
+        if connected_stones_row  >= 4:
+            win = True
+            break
+        connected_stones_row = 0    
+    if connected_stones_row >= 4:
+        win = True
+        break
+    if row >= 3: # column check
+        for i in range(BOARD_ROWS - (BOARD_ROWS-1-row)):
+            if board[row-i, column] == player:
+                connected_stones_column += 1
+                continue
+            break
+        if connected_stones_column >= 4:
+            win = True
+            break
+    
+    # Connections per diagonal (Northeast, SouthWest, etc.) from our top stone
+    diagonal_NE = 0
+    diagonal_NW = 0
+    diagonal_SE = 0
+    diagonal_SW = 0
+    #Tells the diagonal checker which diagonal still needs to be checked
+    Stopp_NE = True
+    Stopp_NW = True
+    Stopp_SE = True
+    Stopp_SW = True
 
 
+    for i in range(BOARD_COLS): # diagonal check
+        if Stopp_SW and row - i >= 0 and column - i >= 0 and board[row - i, column - i] == player:
+            diagonal_SW += 1
+        else: Stopp_SW = False
+        if Stopp_NE and row + i < BOARD_ROWS and column + i < BOARD_COLS and board[row + i, column + i] == player:
+            diagonal_NE += 1
+        else: Stopp_NE = False
+        if Stopp_SE and row - i >= 0 and column + i < BOARD_COLS and board[row - i, column + i] == player:
+            diagonal_SE += 1
+        else: Stopp_SE = False
+        if Stopp_NW and row + i < BOARD_ROWS and column - i >= 0 and board[row + i, column - i] == player:
+            diagonal_NW += 1
+        else: Stopp_NW = False
+    if diagonal_SW + diagonal_NE - 1 >= 4 or diagonal_SE + diagonal_NW - 1 >= 4:
+        win = True
+        break
+print(win)# helper print delete later
 
-"""b = (board == player)
-zeilen, spalten = b.shape
-for i in range(0, zeilen, 1):
-  for j in range(0, spalten, 1):
-    # Hier fehlt evtl. ein Check, ob du überhaupt so ne große Submatrix hast
-    s = b[i:i+4, j:j+4]
-    if np.any(s.sum(0) == 4) or np.any(s.sum(1) == 4) or np.diag(s).sum() == 4 or np.diag(s[::-1, ::-1]).sum() == 4:
-      print(True)"""
+"""

@@ -1,6 +1,6 @@
 import sys
-sys.path.append(r"C:\Users\amirm\Desktop\Projektpython")
-sys.path.append(r"C:\Users\Amir\Desktop\Projektpython")
+sys.path.append(r"C:\Users\amirm\Desktop\PythonProject")
+sys.path.append(r"C:\Users\Amir\Desktop\PythonProject")
 import numpy as np
 
 from game_utils import BOARD_SHAPE, BoardPiece, NO_PLAYER

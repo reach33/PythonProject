@@ -139,8 +139,70 @@ def connected_four(board: np.ndarray, player: BoardPiece) -> bool:
     Returns True if there are four adjacent pieces equal to `player` arranged
     in either a horizontal, vertical, or diagonal line. Returns False otherwise.
     """
-    #main
+    # Every top Stone from player
+    columns_top_positions_player = []
+
+    # Get the top stones form player in every column
+    for i in range(BOARD_COLS):
+        for j in range(BOARD_ROWS):
+            if board[BOARD_ROWS-1-j, i] == NO_PLAYER:
+                continue
+            if board[BOARD_ROWS-1-j, i] == player:
+                columns_top_positions_player.append((BOARD_ROWS-1-j, i))
+                break
+            break                             
+
+    # Checks row and columns from the collected top stones if 4 stones from player are connected
+    # Could be in the loop above (if == player) but is in an extra function for better reading/understanding
+    for (row, column) in columns_top_positions_player:
+        connected_stones_row = 0
+        connected_stones_column = 0
+        for i in range(BOARD_COLS): # row check
+            if board[row,i] == player:
+                connected_stones_row += 1
+                continue
+            if connected_stones_row  >= 4:
+                return True
+            connected_stones_row = 0    
+        if connected_stones_row >= 4:
+            return True
+        if row >= 3: # column check
+            for i in range(BOARD_ROWS - (BOARD_ROWS-1-row)):
+                if board[row-i, column] == player:
+                    connected_stones_column += 1
+                    continue
+                break
+            if connected_stones_column >= 4:
+                return True
             
+        # Connections per diagonal (Northeast, SouthWest, etc.) from our top stone
+        diagonal_NE = 0
+        diagonal_NW = 0
+        diagonal_SE = 0
+        diagonal_SW = 0
+        #Tells the diagonal checker which diagonal still needs to be checked
+        Stopp_NE = True
+        Stopp_NW = True
+        Stopp_SE = True
+        Stopp_SW = True
+
+
+        for i in range(BOARD_COLS): # diagonal check
+            if Stopp_SW and row - i >= 0 and column - i >= 0 and board[row - i, column - i] == player:
+                diagonal_SW += 1
+            else: Stopp_SW = False
+            if Stopp_NE and row + i < BOARD_ROWS and column + i < BOARD_COLS and board[row + i, column + i] == player:
+                diagonal_NE += 1
+            else: Stopp_NE = False
+            if Stopp_SE and row - i >= 0 and column + i < BOARD_COLS and board[row - i, column + i] == player:
+                diagonal_SE += 1
+            else: Stopp_SE = False
+            if Stopp_NW and row + i < BOARD_ROWS and column - i >= 0 and board[row + i, column - i] == player:
+                diagonal_NW += 1
+            else: Stopp_NW = False
+        if diagonal_SW + diagonal_NE - 1 >= 4 or diagonal_SE + diagonal_NW - 1 >= 4:
+            return True
+    return False
 
 
 def check_end_state(board: np.ndarray, player: BoardPiece) -> GameState:
@@ -149,10 +211,11 @@ def check_end_state(board: np.ndarray, player: BoardPiece) -> GameState:
     action won (GameState.IS_WIN) or drawn (GameState.IS_DRAW) the game,
     or is play still on-going (GameState.STILL_PLAYING)?
     """
-
-    # führe vorherige funktion aus um win zu schauen
-    # schau ob es noch NO_Player felder gibt, sonst ist draw. Wenn noch freie felde on going game
-    raise NotImplementedError
+    if connected_four(board, player):
+        return GameState.IS_WIN
+    if np.any(board[BOARD_ROWS-1] == NO_PLAYER):
+        return GameState.STILL_PLAYING
+    return GameState.IS_DRAW
 
 
 def check_move_status(board: np.ndarray, column: Any) -> MoveStatus:
@@ -165,4 +228,8 @@ def check_move_status(board: np.ndarray, column: Any) -> MoveStatus:
     Furthermore, the column must be within the bounds of the board and the
     column must not be full.
     """
+
+    # convertable to a number: https://note.nkmk.me/en/python-check-int-float/ string-> float -> int
+    # out of bounds: 0 <= column < BOARD_COLUMN
+    # full: if board[BOARD_ROWS-1, column] == NO_PLAYER: return valid
     raise NotImplementedError
