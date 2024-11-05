@@ -228,9 +228,9 @@ def check_move_status(board: np.ndarray, column: Any) -> MoveStatus:
     Furthermore, the column must be within the bounds of the board and the
     column must not be full.
     """
-
+        
     #Is column int/float/str?
-    if not (isinstance(column, int) or isinstance(column, float) or isinstance(column, str)):
+    if not (isinstance(column, int) or isinstance(column, float) or isinstance(column, str) or isinstance(column, PlayerAction)):
         return MoveStatus.WRONG_TYPE
 
     #If str, is it convertable to float?
