@@ -220,6 +220,8 @@ print(pretty_print_board(board))
 print(check_end_state(board, player))
 print(check_move_status(board, "42"))
 
+test github
+
 """
 from typing import Callable
 import time
@@ -232,7 +234,7 @@ from agents import user_move, generate_move
 
 def human_vs_agent(
     generate_move_1: GenMove,
-    generate_move_2: GenMove = generate_move,   #   Switch between 'user_move' and 'generate_move' to play Human/Random-Agent
+    generate_move_2: GenMove = user_move,   #   Switch between 'user_move' and 'generate_move' to play Human/Random-Agent
     player_1: str = "Player 1",
     player_2: str = "Player 2",
     args_1: tuple = (),
