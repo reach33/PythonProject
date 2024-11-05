@@ -229,7 +229,27 @@ def check_move_status(board: np.ndarray, column: Any) -> MoveStatus:
     column must not be full.
     """
 
-    # convertable to a number: https://note.nkmk.me/en/python-check-int-float/ string-> float -> int
-    # out of bounds: 0 <= column < BOARD_COLUMN
-    # full: if board[BOARD_ROWS-1, column] == NO_PLAYER: return valid
-    raise NotImplementedError
+    #Is column int/float/str?
+    if not (isinstance(column, int) or isinstance(column, float) or isinstance(column, str)):
+        return MoveStatus.WRONG_TYPE
+
+    #If str, is it convertable to float?
+    if isinstance(column, str):
+        try:
+           column = float(column) # Converting str column to float so we can test easier, if value is int like
+        except ValueError:
+            return MoveStatus.WRONG_TYPE
+
+    #If float, is it convertable to int?
+    if isinstance(column, float) and not column.is_integer():
+        return MoveStatus.NOT_INTEGER
+    
+    #Is column in Bounds?
+    if not (int(column) >= 0 and int(column) < BOARD_COLS):
+        return MoveStatus.OUT_OF_BOUNDS
+    
+    #Is given column full?
+    if not board[BOARD_ROWS-1, int(column)] == NO_PLAYER:
+        return MoveStatus.FULL_COLUMN
+    
+    return MoveStatus.IS_VALID
