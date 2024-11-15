@@ -36,9 +36,12 @@ Attribute:
         (...?)
 
 Methoden: 
-- MCTS_generate_Move (Root: Node)
+-   MCTS_generate_Move (Root: Node)
     	-   Hier wird per Monte Carlo Tree Search der nächste Move (in unserem Beispiel: Node) ausgewählt, den der aktuelle Agent machen soll. Der gewählte Node dient dann als neuer Root, auf dem die Methode aufgerufen wird.
             -   in mcts in agent_mcts in agents (path)
+-   Node
+    - set_value
+        - Berechnet den value des nodes. Ist nötig, um später zu entscheiden, wo weiter simuliert wird. 
 
 
 Plan
