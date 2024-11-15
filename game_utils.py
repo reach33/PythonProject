@@ -25,11 +25,10 @@ class GameState(Enum):
     IS_DRAW = -1
     STILL_PLAYING = 0
 
+#neu von ihm ohne integer check
 class MoveStatus(Enum):
     IS_VALID = 1
-    WRONG_TYPE = 'Input is not a number.'
-    NOT_INTEGER = ('Input is not an integer, or isn\'t equal to an integer in '
-                   'value.')
+    WRONG_TYPE = 'Input does not have the correct type (PlayerAction).'
     OUT_OF_BOUNDS = 'Input is out of bounds.'
     FULL_COLUMN = 'Selected column is full.'
 
@@ -219,30 +218,18 @@ def check_end_state(board: np.ndarray, player: BoardPiece) -> GameState:
 
 
 def check_move_status(board: np.ndarray, column: Any) -> MoveStatus:
+    #seine neue implementierung
     """
-    Returns a MoveStatus indicating whether a move is legal or illegal, and why 
-    the move is illegal.
-    Any column type is accepted if it is convertible to a number (e.g., '3' but 
-    not 'a') and if the conversion results in a whole number (e.g., '3.0' would
-    be okay, but not '3.1').
+    Returns a MoveStatus indicating whether a move is accepted as a valid move 
+    or not, and if not, why.
+    The provided column must be of the correct type (PlayerAction).
     Furthermore, the column must be within the bounds of the board and the
     column must not be full.
     """
         
-    #Is column int/float/str?
-    if not (isinstance(column, int) or isinstance(column, float) or isinstance(column, str) or isinstance(column, PlayerAction)):
+    #Is column typ Playeraction?
+    if not isinstance(column, PlayerAction):
         return MoveStatus.WRONG_TYPE
-
-    #If str, is it convertable to float?
-    if isinstance(column, str):
-        try:
-           column = float(column) # Converting str column to float so we can test easier, if value is int like
-        except ValueError:
-            return MoveStatus.WRONG_TYPE
-
-    #If float, is it convertable to int?
-    if isinstance(column, float) and not column.is_integer():
-        return MoveStatus.NOT_INTEGER
     
     #Is column in Bounds?
     if not (int(column) >= 0 and int(column) < BOARD_COLS):

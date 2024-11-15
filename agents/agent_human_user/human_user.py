@@ -14,11 +14,21 @@ def user_move(board: np.ndarray,
               saved_state: SavedState | None) -> tuple[PlayerAction, SavedState | None]:
     move_status = None
     while move_status != MoveStatus.IS_VALID:
-        if move_status is not None:
-            print('Invalid move: ', move_status.value)
-            print('Please try again.')
         input_move_string = query_user(input)
-        move_status = check_move_status(board, input_move_string)
+        input_move = convert_str_to_action(input_move_string)
+        if input_move is None:
+            continue
+        move_status = check_move_status(board, input_move)
+        if move_status != MoveStatus.IS_VALID:
+            print(f'Move is invalid: {move_status.value}')
+            print('Try again.')
+    return input_move, saved_state
 
-    input_move_integer = PlayerAction(float(input_move_string))
-    return input_move_integer, saved_state
+def convert_str_to_action(input_move_string: str) -> PlayerAction | None: #hier irgendwelche probleme er returned auch wenn er in except drin war (move status =valid???)
+    input_move = None # Meine Anpassug, da sonst bei Buchstaben (Not Integer) Errors entstehen
+    try:
+        input_move = PlayerAction(input_move_string)
+    except ValueError:
+        print('Invalid move: Input must be an integer.')
+        print('Try again.')
+    return input_move
