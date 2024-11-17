@@ -8,12 +8,15 @@ def generate_move_mcts(board: np.ndarray, player: BoardPiece, saved_state: Optio
     Node.set_player(player)
     Node.update_root_by_board(board)
     simulate(4)
-    pass
+    move = PlayerAction(make_move())
+    return [move,saved_state]
 
 def simulate(simulation_depth: int):
-    leaf = Node.get_leaf_by_best_value
-    if simulation_depth > 0:
-        pass #(7->7->7->7 / die nodes müssen erstellt, die parents upgedated, die leafs upgedated) -> eventuell extra methode die board.column neue nodes erstellt und auf diese wieder die simulation anwendet mit depth - 1 und du musst schauen wer überhaupt dran ist damit du sagen kannst aus welcher perspektive welcher move am besten ist (beziehungsweiße mit dem negativ ding  rechnest um nichts an der logik ändern zu müssen)
-    pass
 
+    leaf = Node.get_leaf_by_best_value()
+    leaf.create_children(simulation_depth)
+
+def make_move() -> int:
+
+    return Node.current_root.choose_child_as_move_by_weight().chosen_column
 
