@@ -25,7 +25,6 @@ class GameState(Enum):
     IS_DRAW = -1
     STILL_PLAYING = 0
 
-#neu von ihm ohne integer check
 class MoveStatus(Enum):
     IS_VALID = 1
     WRONG_TYPE = 'Input does not have the correct type (PlayerAction).'
@@ -154,12 +153,10 @@ def connected_four(board: np.ndarray, player: BoardPiece) -> bool:
         for i in range(BOARD_COLS):
             if board[row, i] == player:
                 connected_stones_row += 1
+                if connected_stones_row >= 4:
+                    return True
                 continue
-            if connected_stones_row >= 4:
-                return True
             connected_stones_row = 0
-        if connected_stones_row >= 4:
-            return True
 
         if row >= 3:
             for i in range(BOARD_ROWS - (BOARD_ROWS - 1 - row)):
