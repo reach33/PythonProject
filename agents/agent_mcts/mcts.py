@@ -18,7 +18,12 @@ def generate_move_mcts(board: np.ndarray, player: BoardPiece, saved_state: Optio
     """
     Node.set_player(player)
     Node.update_root_by_board(board)
-    simulate(5)#should repeatedly chose by ubs (oder so) until time ends (if max 5 sec then stop by 4,5?) not just simulate depth
+    simulate(4)#should repeatedly chose by ubs (oder so) until time ends (if max 5 sec then stop by 4,5?) not just simulate depth
+    simulate(4)
+    simulate(4)
+    simulate(4)
+    simulate(4)
+    simulate(4)
     move = PlayerAction(make_move())
     return [move, saved_state]
 

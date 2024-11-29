@@ -52,7 +52,7 @@ class Node:
 
     def set_value(self):
         """Calculates and sets the value for the node using the Upper Confidence Bound (UCB) formula."""
-        if self.total_simulations == 0:
+        if self.total_simulations == 0 or check_end_state(self.board,self.player) == GameState.IS_WIN or check_end_state(self.board,PLAYER2 if self.player == PLAYER1 else PLAYER1) == GameState.IS_WIN:
             self.value = 0
             return
         self.value = (self.win_simulations / self.total_simulations) + \
@@ -132,9 +132,10 @@ class Node:
         Args:
             simulation_depth (int): The depth of simulation for creating children.
         """
+        opponent = PLAYER1 if self.player == PLAYER2 else PLAYER2
         if simulation_depth > 0:
             for i in range(BOARD_COLS):
-                if check_move_status(self.board, PlayerAction(i)) == MoveStatus.IS_VALID:
+                if check_end_state(self.board,self.player) == GameState.STILL_PLAYING  and check_end_state(self.board,opponent) == GameState.STILL_PLAYING and check_move_status(self.board, PlayerAction(i)) == MoveStatus.IS_VALID:# hier die check if ende eingetragen sollte jett keine kinder bei endgames mehr generieren
                     Node(self, i, self.board.copy()).create_children(simulation_depth - 1)
 
     def choose_child_as_move_by_weight(self) -> Node:
@@ -143,13 +144,11 @@ class Node:
         Returns:
             Node: The child node with the highest weight.
         """
-        if self.children:
-            current_child = random.choice(self.children)
-            for child in self.children:
-                if child.weight > current_child.weight:
-                    current_child = child
-            return current_child
-        return self
+        current_child = random.choice(self.children)
+        for child in self.children:
+            if child.weight > current_child.weight:
+                current_child = child
+        return current_child
 
     def set_weight(self, win: bool = False):
         """Calculates and sets the weight for the current node.
@@ -157,23 +156,26 @@ class Node:
         Args:
             win (bool): Whether the simulation resulted in a win.
         """
-        self.weight -= 1
-        if win:
-            self.weight += 100
+        opponent = PLAYER1 if self.player == PLAYER2 else PLAYER2
+        win_player = check_end_state(self.board, self.player) == GameState.IS_WIN# jedesmal checken kostet zeit besser direkt in update ancestors mitgeben als bool nicht spart zeit
+        win_opponent = check_end_state(self.board, opponent) == GameState.IS_WIN
 
-        if not self.children:
-            if check_end_state(self.board, self.player) == GameState.IS_WIN:
-                self.weight = 1000000
-            opponent = PLAYER1 if self.player == PLAYER2 else PLAYER2
-            if check_end_state(self.board, opponent) == GameState.IS_WIN:
-                self.weight = -1000000
+        self.weight -= 1
+
+        if win:
+            self.weight += 10000
+        if win_player:
+            self.weight += 3000000
+        if win_opponent:
+            self.weight -= 3000000
 
         if self.move_made_by == self.player:
             if self.weight <= -1000000:
-                count_losses = sum(1 for child in self.parent.children if child.weight <= -1000000)
-                if count_losses > 1:
+                count_no_losses = sum(1 for child in self.parent.children if child.weight > -1000000)
+                if count_no_losses < 1:
                     self.parent.weight = min(self.weight, self.parent.weight)
                     return
             self.parent.weight = max(self.weight, self.parent.weight)
-        else:
+
+        if self.move_made_by == opponent:
             self.parent.weight = min(self.weight, self.parent.weight)
