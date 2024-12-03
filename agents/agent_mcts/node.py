@@ -131,21 +131,21 @@ class Node:
     def create_children(self):
         """Creates child nodes by simulating moves up to a end node.
         """
-
-        end_state_player = check_end_state(self.board,Node.player)
-        end_state_opponent = check_end_state(self.board,Node.opponent)
     
-        if end_state_player == GameState.STILL_PLAYING and end_state_opponent == GameState.STILL_PLAYING:
+        if check_end_state(self.board,self.move_made_by) == GameState.STILL_PLAYING:
+            if len(self.children) == 7:
+                random.choice(self.children).create_children()
+                return
             column: int
             is_not_valid = True
             while(is_not_valid):
                 column = random.randint(0, BOARD_COLS-1)
-                if check_move_status(self.board, PlayerAction(column)) == MoveStatus.IS_VALID:
+                if self.child_not_generated(column) and check_move_status(self.board, PlayerAction(column)) == MoveStatus.IS_VALID:
                     is_not_valid = False
             Node(self,column,self.board).create_children()     
             return
         
-        if end_state_player == GameState.IS_WIN:
+        if check_end_state(self.board,Node.player) == GameState.IS_WIN:
             self.update_ancestors(True)
         else:
             self.update_ancestors()
@@ -173,7 +173,7 @@ class Node:
         win_player = check_end_state(self.board, self.player) == GameState.IS_WIN
         win_opponent = check_end_state(self.board, Node.opponent) == GameState.IS_WIN
 
-        self.weight -= 1
+        self.weight -= 100
 
         if win:
             self.weight += 10000
@@ -192,3 +192,9 @@ class Node:
 
         if self.move_made_by == Node.opponent:
             self.parent.weight = min(self.weight, self.parent.weight)
+
+    def child_not_generated(self, column: int)->bool:
+        for child in self.children:
+            if child.chosen_column == column:
+                return False
+        return True
