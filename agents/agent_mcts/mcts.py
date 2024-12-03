@@ -21,11 +21,12 @@ def generate_move_mcts(board: np.ndarray, player: BoardPiece, saved_state: Optio
     Node.update_root_by_board(board)
     start = time.time()
     end = 0
-    while(end-start < 5):
+    while(end-start < 20):
         simulate()
         end = time.time()
     move = PlayerAction(make_move())
-    return [move, saved_state]
+    test = Node.current_root
+    return tuple([move, saved_state])
 
 
 def simulate():
