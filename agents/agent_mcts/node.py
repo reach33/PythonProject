@@ -89,13 +89,21 @@ class Node:
         Returns:
             Node: The node with the highest value among the children.
         """
-        max_value = 0
+        if self == Node.current_root and len(self.children) != 7:
+            return self
+
+        chosen_child = False
+        max_value = self.value
         max_child = self
         for child in self.children:
             if child.value >= max_value:
                 max_child = child
                 max_value = child.value
-        return max_child.choose_next_node_by_value() if max_child.children else max_child
+                chosen_child = True
+
+        if chosen_child:
+            return max_child.choose_next_node_by_value() if max_child.children else max_child
+        return self
 
     def update_ancestors(self, win: Optional[bool] = False):
         """Updates the ancestors of this node based on the simulation result.
@@ -136,10 +144,14 @@ class Node:
             if len(self.children) == 7:
                 random.choice(self.children).create_children()
                 return
-            column: int
+            columns = list(range(0,7))
             is_not_valid = True
             while(is_not_valid):
-                column = random.randint(0, BOARD_COLS-1)
+                if not columns:
+                    random.choice(self.children).create_children()
+                    return
+                column = random.choice(columns)
+                columns.remove(column)
                 if self.child_not_generated(column) and check_move_status(self.board, PlayerAction(column)) == MoveStatus.IS_VALID:
                     is_not_valid = False
             Node(self,column,self.board).create_children()     
