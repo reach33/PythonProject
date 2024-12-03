@@ -2,6 +2,7 @@ import numpy as np
 from .node import Node
 from typing import Optional, Tuple
 from game_utils import BoardPiece, PlayerAction, SavedState, BOARD_COLS, check_move_status, MoveStatus
+import time
 
 def generate_move_mcts(board: np.ndarray, player: BoardPiece, saved_state: Optional[SavedState]) -> Tuple[PlayerAction, Optional[SavedState]]:
     """
@@ -18,25 +19,21 @@ def generate_move_mcts(board: np.ndarray, player: BoardPiece, saved_state: Optio
     """
     Node.set_player(player)
     Node.update_root_by_board(board)
-    simulate(4)#should repeatedly chose by ubs (oder so) until time ends (if max 5 sec then stop by 4,5?) not just simulate depth
-    simulate(4)
-    simulate(4)
-    simulate(4)
-    simulate(4)
-    simulate(4)
+    start = time.time()
+    end = 0
+    while(end-start < 10):
+        simulate()#should repeatedly chose by ubs (oder so) until time ends (if max 5 sec then stop by 4,5?) not just simulate depth
+        end = time.time()
     move = PlayerAction(make_move())
     return [move, saved_state]
 
 
-def simulate(simulation_depth: int):
+def simulate():
     """
     Simulates potential future moves to a specified depth by expanding the tree from the best leaf node.
-
-    Args:
-        simulation_depth (int): The depth to which the game tree should be expanded.
     """
     leaf = Node.get_leaf_by_best_value()
-    leaf.create_children(simulation_depth)
+    leaf.create_children()
 
 
 def make_move() -> int:

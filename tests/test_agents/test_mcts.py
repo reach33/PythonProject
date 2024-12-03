@@ -27,7 +27,7 @@ def test_choose_child_as_move_by_weight(board):
     chosen_child_as_move = Node.current_root.choose_child_as_move_by_weight()
     assert chosen_child_as_move == best_child
 
-def test_set_weight(board):#vielleicht zu viel macht sinn?
+def test_set_weight_problem(board):#überarbeiten
     board[0,1] = PLAYER2
     board[0,2] = PLAYER2
     board[0,3] = PLAYER2
@@ -64,14 +64,3 @@ def test_choose_next_node_by_value(board):#überabreiten der boards mit copy
     best_node = Node.current_root.children[1].children[0]
     chosen_node = Node.current_root.choose_next_node_by_value()
     assert chosen_node == best_node
-
-"""def test_weight_problem(board):
-    board[0,2] = PLAYER2
-    board[0,3] = PLAYER2
-    Node(Node.current_root,5,board)
-    Node.update_root_by_board(board)
-    Node.current_root.move_made_by = PLAYER2
-    Node.current_root.create_children(3)
-    current_root = Node.current_root
-    if True:
-        pass"""

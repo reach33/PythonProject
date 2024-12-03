@@ -11,6 +11,7 @@ class Node:
     Attributes:
         current_root (Node): The current root of the search tree.
         player (BoardPiece): The player whose move is being evaluated.
+        opponent (BoardPiece): The opponent of the player.
         parent (Node): The parent node of this node.
         chosen_column (int): The column chosen to reach this node.
         board (np.ndarray): The board state at this node.
@@ -24,6 +25,7 @@ class Node:
 
     current_root: Node = None
     player: BoardPiece = None
+    opponent: BoardPiece = None
 
     def __init__(self, parent: Node, chosen_column: int, board: np.ndarray):
         """Initializes a new node.
@@ -35,7 +37,7 @@ class Node:
         """
         self.parent = parent
         self.chosen_column = chosen_column
-        self.board = board
+        self.board = board.copy()
         self.children: list[Node] = []
         self.win_simulations = 0
         self.total_simulations = 0
@@ -46,13 +48,12 @@ class Node:
             self.move_made_by = PLAYER1 if self.parent.move_made_by == PLAYER2 else PLAYER2
             self.parent.children.append(self)
             apply_player_action(self.board, self.chosen_column, self.move_made_by)
-            self.update_ancestors(check_end_state(self.board, self.player) == GameState.IS_WIN)
         else:
             self.move_made_by = PLAYER1 if self.player == PLAYER2 else PLAYER2
 
     def set_value(self):
         """Calculates and sets the value for the node using the Upper Confidence Bound (UCB) formula."""
-        if self.total_simulations == 0 or check_end_state(self.board,self.player) == GameState.IS_WIN or check_end_state(self.board,PLAYER2 if self.player == PLAYER1 else PLAYER1) == GameState.IS_WIN:
+        if self.total_simulations == 0 or check_end_state(self.board,self.player) != GameState.STILL_PLAYING or check_end_state(self.board,Node.opponent) != GameState.STILL_PLAYING:
             self.value = 0
             return
         self.value = (self.win_simulations / self.total_simulations) + \
@@ -71,7 +72,7 @@ class Node:
                     cls.current_root = child
                     return
         
-        cls.current_root = Node(None, 0, board.copy())
+        cls.current_root = Node(None, 0, board)
 
     @classmethod
     def get_leaf_by_best_value(cls) -> Node:
@@ -102,44 +103,56 @@ class Node:
         Args:
             win (Optional[bool]): Whether the simulation resulted in a win.
         """
-        if win:
-            if self.parent is not None:
+        if self == Node.current_root:
+            return
+        else:
+            if win:        
                 self.parent.total_simulations += 1
                 self.parent.win_simulations += 1
                 self.set_weight(True)
-                self.parent.update_ancestors(True)
                 self.set_value()
-            return
-
-        if self.parent is not None:
+                self.parent.update_ancestors(True)
+                return
             self.parent.total_simulations += 1
             self.set_weight()
-            self.parent.update_ancestors()
             self.set_value()
+            self.parent.update_ancestors()
 
     @classmethod
     def set_player(cls, player: BoardPiece):
-        """Sets the current player for the game.
+        """Sets the current player for the game and his opponent.
 
         Args:
             player (BoardPiece): The player piece (PLAYER1 or PLAYER2).
         """
         cls.player = player
+        cls.opponent = PLAYER1 if player == PLAYER2 else PLAYER2
 
-    def create_children(self, simulation_depth: int):
-        """Creates child nodes by simulating moves up to a given depth.
-
-        Args:
-            simulation_depth (int): The depth of simulation for creating children.
+    def create_children(self):
+        """Creates child nodes by simulating moves up to a end node.
         """
-        opponent = PLAYER1 if self.player == PLAYER2 else PLAYER2
-        if simulation_depth > 0:
-            for i in range(BOARD_COLS):
-                if check_end_state(self.board,self.player) == GameState.STILL_PLAYING  and check_end_state(self.board,opponent) == GameState.STILL_PLAYING and check_move_status(self.board, PlayerAction(i)) == MoveStatus.IS_VALID:# hier die check if ende eingetragen sollte jett keine kinder bei endgames mehr generieren
-                    Node(self, i, self.board.copy()).create_children(simulation_depth - 1)
+
+        end_state_player = check_end_state(self.board,Node.player)
+        end_state_opponent = check_end_state(self.board,Node.opponent)
+    
+        if end_state_player == GameState.STILL_PLAYING and end_state_opponent == GameState.STILL_PLAYING:
+            column: int
+            is_not_valid = True
+            while(is_not_valid):
+                column = random.randint(0, BOARD_COLS-1)
+                if check_move_status(self.board, PlayerAction(column)) == MoveStatus.IS_VALID:
+                    is_not_valid = False
+            Node(self,column,self.board).create_children()     
+            return
+        
+        if end_state_player == GameState.IS_WIN:
+            self.update_ancestors(True)
+        else:
+            self.update_ancestors()
+ 
 
     def choose_child_as_move_by_weight(self) -> Node:
-        """Selects the best move based on node weights.
+        """Selects the best move based on node weights and makes it the new root.
 
         Returns:
             Node: The child node with the highest weight.
@@ -148,6 +161,7 @@ class Node:
         for child in self.children:
             if child.weight > current_child.weight:
                 current_child = child
+        Node.update_root_by_board(current_child.board)
         return current_child
 
     def set_weight(self, win: bool = False):
@@ -156,9 +170,8 @@ class Node:
         Args:
             win (bool): Whether the simulation resulted in a win.
         """
-        opponent = PLAYER1 if self.player == PLAYER2 else PLAYER2
-        win_player = check_end_state(self.board, self.player) == GameState.IS_WIN# jedesmal checken kostet zeit besser direkt in update ancestors mitgeben als bool nicht spart zeit
-        win_opponent = check_end_state(self.board, opponent) == GameState.IS_WIN
+        win_player = check_end_state(self.board, self.player) == GameState.IS_WIN
+        win_opponent = check_end_state(self.board, Node.opponent) == GameState.IS_WIN
 
         self.weight -= 1
 
@@ -177,5 +190,5 @@ class Node:
                     return
             self.parent.weight = max(self.weight, self.parent.weight)
 
-        if self.move_made_by == opponent:
+        if self.move_made_by == Node.opponent:
             self.parent.weight = min(self.weight, self.parent.weight)
