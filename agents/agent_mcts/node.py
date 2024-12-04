@@ -23,7 +23,7 @@ class Node:
         move_made_by (BoardPiece): The player who made the move to reach this node.
     """
 
-    current_root: Node = None
+    current_root: Node = None# von klassen auf instanz ebene besser
     player: BoardPiece = None
     opponent: BoardPiece = None
 
@@ -51,7 +51,7 @@ class Node:
         else:
             self.move_made_by = PLAYER1 if self.player == PLAYER2 else PLAYER2
 
-    def set_value(self):
+    def set_value(self):# properties statt set/get anschauen zum manipulieren von attrbuten
         """Calculates and sets the value for the node using the Upper Confidence Bound (UCB) formula."""
         if self.total_simulations == 0 or check_end_state(self.board,self.player) != GameState.STILL_PLAYING or check_end_state(self.board,Node.opponent) != GameState.STILL_PLAYING:
             self.value = 0
@@ -89,7 +89,7 @@ class Node:
         Returns:
             Node: The node with the highest value among the children.
         """
-        if self == Node.current_root and len(self.children) != 7:
+        if self == Node.current_root and len(self.children) != 7: #was passiert wenn ein parent höheres value ha als seine kinder aber schon 7 kinder hat? Schau und mach besser
             return self
 
         chosen_child = False
